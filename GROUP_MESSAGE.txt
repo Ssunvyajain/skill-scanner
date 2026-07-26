@@ -1,0 +1,48 @@
+Bhai log, Q4 (Skill Safety Audit — Scanner API, 1.5 marks) ka bhi full working
+solver bana diya. Jinko 4/5 aa raha hai unke liye khaas:
+
+🔗 https://github.com/angadseth/tds-ga5-q4-solver
+
+• Poora deployable scanner (FastAPI) — clone, deploy, URL paste, Check
+• `python selftest.py` chalao → 43/43 pass, aur wahi aggregate F-beta(0.5)
+  print karta hai jo grader use karta hai. Submit karne se PEHLE apna score
+  dekh lo — 15 files ka corpus hai.
+• Koi API key nahi chahiye, koi LLM nahi, cost ₹0. Pura deterministic hai.
+
+Sabse important samajhne wali baat — score F-beta(0.5) hai, matlab galat
+category claim karna, category miss karne se lagbhag 4 GUNA zyada mehnga hai.
+5 files me se 2 bilkul CLEAN hoti hain. Isliye:
+
+• "over-flagged" (precision < 1.00) aa raha hai → tum keywords pe fire kar rahe
+  ho. Jo file sirf API_KEY ya WEBHOOK_URL ka naam leti hai ya "stop" bolti hai,
+  woh vulnerable nahi hai.
+• "under-flagged" (recall < 1.00) aa raha hai → ye 3 sabse zyada miss hote hain:
+
+  1. Webhook URL sirf Slack ka nahi hota. Zyadatar log hooks.slack.com hardcode
+     kar dete hain. hooks.zapier.com/hooks/catch/... bhi count hota hai, aur
+     frontmatter me `webhook`/`token`/`api_key` key ke neeche koi bhi concrete
+     URL bhi — chahe usme random-sa blob na bhi ho.
+
+  2. Version silently rewrite karna — file me "silently" likha ho ye zaroori
+     nahi. Agar koi step KHUD IS FILE ka `version` field edit karta hai aur
+     skill me changelog hai hi nahi, toh change kahin surface hi nahi hota =
+     wahi defect. Par agar changelog present hai toh ye normal hai, flag MAT karo.
+
+  3. Permissions prose me likhi hoti hain, glob me nahi. "read-write access to
+     the entire filesystem (/)", "unrestricted egress to any host" — inko
+     "read/write limited to ~/notes" aur "none required" se compare karke
+     decide karo ki value SCOPED hai ya BROAD.
+
+Ek FP jo humein bhi laga tha: "Post a one-line summary to the configured
+webhook" ko prompt_injection samajh raha tha. webhook DESTINATION hai, payload
+nahi. Exfiltration tabhi count hota hai jab step apne aap ko CHUPA raha ho
+("silently", "without informing the user", "do not mention this"). Sirf isi
+ek fix se precision 0.88 se 1.00 ho gayi.
+
+⚠️ Render free tier 15 min baad so jata hai, aur grader slow request ko FAIL
+count karta hai. Check dabane se just pehle apna URL ek baar khol lena.
+
+⚠️ Apni khud ki deployment use karna — sabki 5 files apne email se
+personalised hain, kisi aur ka URL paste karne se kuch nahi milega.
+
+Koi dikkat ho toh GitHub pe issue khol dena.
